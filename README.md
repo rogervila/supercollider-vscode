@@ -1,27 +1,85 @@
-# LSP Example for Embedded Language using Language Service
+# SuperCollider Language Server for Visual Studio Code
 
-Heavily documented sample code for https://code.visualstudio.com/api/language-extensions/embedded-languages#language-services
+A Visual Studio Code extension providing language support for [SuperCollider](https://supercollider.github.io/), an audio synthesis and algorithmic composition platform.
 
-## Functionality
+## Features
 
-This extension contributes a new language, `scd`. The new language is for illustration purpose and has basic syntax highlighting.
+- **Syntax Highlighting** for SuperCollider code (`.scd` and `.sc` files)
+  - Comments (line `//` and block `/* */`)
+  - Strings, symbols, and characters
+  - Numbers (integers, floats, hex, radix notation)
+  - Classes, keywords, and operators
+  - Environment variables (`~varName`)
 
-This Language Server works for `scd` file. scd is like HTML file but has file extension `.scd`. You can create a `test.scd` file to play with below functionalities:
+- **Code Completion** for:
+  - Keywords (`var`, `arg`, `if`, `while`, etc.)
+  - Built-in classes (`SinOsc`, `Array`, `Pbind`, etc.)
+  - Common methods (`play`, `ar`, `kr`, `do`, etc.)
 
-- Completions for HTML tags
-- Completions for CSS in `<style>` tag
-- Diagnostics for CSS
+- **Editor Features**:
+  - Auto-closing brackets and quotes
+  - Block commenting
+  - Code folding
 
-## Running the Sample
+## Installation
 
-- Run `npm install` in this folder. This installs all necessary npm modules in both the client and server folder
-- Open VS Code on this folder.
-- Press Ctrl+Shift+B to compile the client and server.
-- Switch to the Debug viewlet.
-- Select `Launch Client` from the drop down.
-- Run the launch config.
-- If you want to debug the server as well use the launch configuration `Attach to Server`
-- In the [Extension Development Host] instance of VSCode, open a HTML document
-  - Type `<d|` to try HTML completion
-  - Type `<style>.foo { c| }</style>` to try CSS completion
-  - Have `<style>.foo { }</style>` to see CSS Diagnostics
+1. Clone this repository
+2. Run `npm install` in the root folder
+3. Open VS Code on this folder
+4. Press `Ctrl+Shift+B` to compile
+5. Press `F5` to launch the Extension Development Host
+
+## Usage
+
+Create or open a `.scd` or `.sc` file and start writing SuperCollider code:
+
+```supercollider
+// Simple sine wave
+{
+    var freq = 440;
+    SinOsc.ar(freq, 0, 0.1)
+}.play;
+
+// Pattern example
+Pbind(
+    \instrument, \default,
+    \degree, Pseq([0, 2, 4, 5, 7], inf),
+    \dur, 0.25
+).play;
+```
+
+## Development
+
+### Project Structure
+
+```
+├── client/          # Language client (VSCode extension)
+│   └── src/
+│       └── extension.ts
+├── server/          # Language server
+│   └── src/
+│       ├── server.ts
+│       ├── languageModes.ts
+│       └── modes/
+│           └── scdMode.ts
+├── syntaxes/        # TextMate grammar
+│   └── scd.tmLanguage.json
+└── package.json
+```
+
+### Building
+
+```bash
+npm install
+npm run compile
+```
+
+### Debugging
+
+1. Open in VS Code
+2. Press `F5` to launch Extension Development Host
+3. Use "Attach to Server" debug configuration to debug the language server
+
+## License
+
+MIT

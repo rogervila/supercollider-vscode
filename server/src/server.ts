@@ -61,7 +61,7 @@ async function validateTextDocument(textDocument: TextDocument) {
 	try {
 		const version = textDocument.version;
 		const diagnostics: Diagnostic[] = [];
-		if (textDocument.languageId === 'scd') {
+		if (textDocument.languageId === 'supercollider') {
 			const modes = languageModes.getAllModesInDocument(textDocument);
 			const latestTextDocument = documents.get(textDocument.uri);
 			if (latestTextDocument && latestTextDocument.version === version) {

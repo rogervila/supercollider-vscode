@@ -3,21 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getCSSLanguageService } from 'vscode-css-languageservice';
 import {
 	CompletionList,
 	Diagnostic,
-	getLanguageService as getHTMLLanguageService,
 	Position,
 	Range,
-} from 'vscode-html-languageservice';
+} from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { getCSSMode } from './modes/cssMode';
-import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
-import { getHTMLMode } from './modes/htmlMode';
-import { getLanguageModelCache, LanguageModelCache } from './languageModelCache';
+import { getSuperColliderMode } from './modes/scdMode';
 
-export * from 'vscode-html-languageservice';
+export { Position, Range, TextDocument };
 
 export interface LanguageMode {
 	getId(): string;
@@ -43,80 +38,46 @@ export interface LanguageModeRange extends Range {
 }
 
 export function getLanguageModes(): LanguageModes {
-	const htmlLanguageService = getHTMLLanguageService();
-	const cssLanguageService = getCSSLanguageService();
+	const scdMode = getSuperColliderMode();
 
-	const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
-		getDocumentRegions(htmlLanguageService, document)
-	);
-
-	let modelCaches: LanguageModelCache<unknown>[] = [];
-	modelCaches.push(documentRegions);
-
-	let modes = Object.create(null);
-	modes['html'] = getHTMLMode(htmlLanguageService);
-	modes['css'] = getCSSMode(cssLanguageService, documentRegions);
+	const modes: { [id: string]: LanguageMode } = {
+		'supercollider': scdMode
+	};
 
 	return {
 		getModeAtPosition(
-			document: TextDocument,
-			position: Position
+			_document: TextDocument,
+			_position: Position
 		): LanguageMode | undefined {
-			const languageId = documentRegions.get(document).getLanguageAtPosition(position);
-			if (languageId) {
-				return modes[languageId];
-			}
-			return undefined;
+			// SuperCollider is a single language, always return the scd mode
+			return scdMode;
 		},
 		getModesInRange(document: TextDocument, range: Range): LanguageModeRange[] {
-			return documentRegions
-				.get(document)
-				.getLanguageRanges(range)
-				.map((r): LanguageModeRange => {
-					return {
-						start: r.start,
-						end: r.end,
-						mode: r.languageId && modes[r.languageId],
-						attributeValue: r.attributeValue
-					};
-				});
+			// SuperCollider is a single language, return the whole range as scd
+			return [{
+				start: range.start,
+				end: range.end,
+				mode: scdMode
+			}];
 		},
-		getAllModesInDocument(document: TextDocument): LanguageMode[] {
-			const result = [];
-			for (const languageId of documentRegions.get(document).getLanguagesInDocument()) {
-				const mode = modes[languageId];
-				if (mode) {
-					result.push(mode);
-				}
-			}
-			return result;
+		getAllModesInDocument(_document: TextDocument): LanguageMode[] {
+			return [scdMode];
 		},
 		getAllModes(): LanguageMode[] {
-			const result = [];
-			for (const languageId in modes) {
-				const mode = modes[languageId];
-				if (mode) {
-					result.push(mode);
-				}
-			}
-			return result;
+			return Object.values(modes);
 		},
 		getMode(languageId: string): LanguageMode {
 			return modes[languageId];
 		},
 		onDocumentRemoved(document: TextDocument) {
-			modelCaches.forEach(mc => mc.onDocumentRemoved(document));
-			for (const mode in modes) {
-				modes[mode].onDocumentRemoved(document);
+			for (const mode of Object.values(modes)) {
+				mode.onDocumentRemoved(document);
 			}
 		},
 		dispose(): void {
-			modelCaches.forEach(mc => mc.dispose());
-			modelCaches = [];
-			for (const mode in modes) {
-				modes[mode].dispose();
+			for (const mode of Object.values(modes)) {
+				mode.dispose();
 			}
-			modes = {};
 		}
 	};
 }

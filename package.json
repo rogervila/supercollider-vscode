@@ -9,28 +9,28 @@
 		"url": "https://github.com/rogervila/supercollider-vscode"
 	},
 	"publisher": "rogervila",
-	"categories": [],
-	"keywords": [],
+	"categories": ["Programming Languages", "Linters"],
+	"keywords": ["supercollider", "scd", "sc", "audio", "music", "synthesis"],
 	"engines": {
 		"vscode": "^1.100.0"
 	},
-	"activationEvents": [
-		"onLanguage:scd"
-	],
 	"main": "./client/out/extension",
 	"contributes": {
 		"languages": [
 			{
-				"id": "scd",
+				"id": "supercollider",
+				"aliases": ["SuperCollider", "scd", "sc"],
 				"extensions": [
-					".scd"
-				]
+					".scd",
+					".sc"
+				],
+				"configuration": "./language-configuration.json"
 			}
 		],
 		"grammars": [
 			{
-				"language": "scd",
-				"scopeName": "text.scd.basic",
+				"language": "supercollider",
+				"scopeName": "source.supercollider",
 				"path": "./syntaxes/scd.tmLanguage.json"
 			}
 		]

@@ -1,0 +1,216 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "SuperCollider",
+	"scopeName": "source.supercollider",
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#strings" },
+		{ "include": "#symbols" },
+		{ "include": "#characters" },
+		{ "include": "#numbers" },
+		{ "include": "#keywords" },
+		{ "include": "#constants" },
+		{ "include": "#classes" },
+		{ "include": "#environment-variables" },
+		{ "include": "#variables" },
+		{ "include": "#operators" },
+		{ "include": "#punctuation" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.supercollider",
+					"match": "//.*$"
+				},
+				{
+					"name": "comment.block.supercollider",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.supercollider",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.supercollider",
+							"match": "\\\\."
+						}
+					]
+				}
+			]
+		},
+		"symbols": {
+			"patterns": [
+				{
+					"name": "string.other.symbol.quoted.supercollider",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape.supercollider",
+							"match": "\\\\."
+						}
+					]
+				},
+				{
+					"name": "string.other.symbol.supercollider",
+					"match": "\\\\[a-zA-Z_][a-zA-Z0-9_]*"
+				}
+			]
+		},
+		"characters": {
+			"patterns": [
+				{
+					"name": "constant.character.supercollider",
+					"match": "\\$\\\\?."
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.hexadecimal.supercollider",
+					"match": "\\b0[xX][0-9a-fA-F]+\\b"
+				},
+				{
+					"name": "constant.numeric.radix.supercollider",
+					"match": "\\b[0-9]+r[0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)?\\b"
+				},
+				{
+					"name": "constant.numeric.float.supercollider",
+					"match": "\\b[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+				},
+				{
+					"name": "constant.numeric.integer.supercollider",
+					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.numeric.scale-degree.supercollider",
+					"match": "\\b[0-9]+[sb]+[0-9]*\\b"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.supercollider",
+					"match": "\\b(if|while|for|forBy|case|switch|do|loop|collect|select|reject|detect|any|every)\\b"
+				},
+				{
+					"name": "storage.type.supercollider",
+					"match": "\\b(var|arg|classvar|const)\\b"
+				},
+				{
+					"name": "storage.modifier.supercollider",
+					"match": "\\^"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.language.boolean.supercollider",
+					"match": "\\b(true|false)\\b"
+				},
+				{
+					"name": "constant.language.nil.supercollider",
+					"match": "\\bnil\\b"
+				},
+				{
+					"name": "constant.language.supercollider",
+					"match": "\\b(inf|pi)\\b"
+				},
+				{
+					"name": "variable.language.supercollider",
+					"match": "\\b(this|super|thisFunctionDef|thisFunction|thisMethod|thisProcess|thisThread)\\b"
+				}
+			]
+		},
+		"classes": {
+			"patterns": [
+				{
+					"name": "entity.name.type.class.supercollider",
+					"match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+				}
+			]
+		},
+		"environment-variables": {
+			"patterns": [
+				{
+					"name": "variable.other.environment.supercollider",
+					"match": "~[a-zA-Z_][a-zA-Z0-9_]*"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"name": "variable.other.supercollider",
+					"match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator.comparison.supercollider",
+					"match": "===|!==|==|!=|<=|>=|<|>"
+				},
+				{
+					"name": "keyword.operator.logical.supercollider",
+					"match": "&&|\\|\\||and|or|not"
+				},
+				{
+					"name": "keyword.operator.arithmetic.supercollider",
+					"match": "\\+\\+|\\+|\\-|\\*\\*|\\*|/|%|\\@\\@|\\@"
+				},
+				{
+					"name": "keyword.operator.assignment.supercollider",
+					"match": "="
+				},
+				{
+					"name": "keyword.operator.bitwise.supercollider",
+					"match": "&|\\||\\^|<<|>>"
+				},
+				{
+					"name": "keyword.operator.range.supercollider",
+					"match": "\\.\\."
+				}
+			]
+		},
+		"punctuation": {
+			"patterns": [
+				{
+					"name": "punctuation.separator.supercollider",
+					"match": "[;,]"
+				},
+				{
+					"name": "punctuation.accessor.supercollider",
+					"match": "\\."
+				},
+				{
+					"name": "punctuation.section.block.supercollider",
+					"match": "[{}]"
+				},
+				{
+					"name": "punctuation.section.brackets.supercollider",
+					"match": "[\\[\\]]"
+				},
+				{
+					"name": "punctuation.section.parens.supercollider",
+					"match": "[()]"
+				},
+				{
+					"name": "punctuation.separator.pipe.supercollider",
+					"match": "\\|"
+				}
+			]
+		}
+	}
+}

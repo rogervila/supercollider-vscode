@@ -32,14 +32,14 @@ export function activate(context: ExtensionContext) {
 
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
-		// Register the server for plain text documents
-		documentSelector: [{ scheme: 'file', language: 'scd' }]
+		// Register the server for SuperCollider documents
+		documentSelector: [{ scheme: 'file', language: 'supercollider' }]
 	};
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
-		'languageServerExample',
-		'Language Server Example',
+		'supercolliderLanguageServer',
+		'SuperCollider Language Server',
 		serverOptions,
 		clientOptions
 	);
