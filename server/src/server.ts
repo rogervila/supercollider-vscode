@@ -7,6 +7,7 @@ import {
 	CompletionList,
 	createConnection,
 	Diagnostic,
+	Hover,
 	InitializeParams,
 	ProposedFeatures,
 	TextDocuments,
@@ -41,7 +42,9 @@ connection.onInitialize((_params: InitializeParams) => {
 			// Tell the client that the server supports code completion
 			completionProvider: {
 				resolveProvider: false
-			}
+			},
+			// Tell the client that the server supports hover
+			hoverProvider: true
 		}
 	};
 });
@@ -95,6 +98,20 @@ connection.onCompletion(async (textDocumentPosition, _token) => {
 	const doComplete = mode.doComplete!;
 
 	return doComplete(document, textDocumentPosition.position);
+});
+
+connection.onHover(async (textDocumentPosition, _token) => {
+	const document = documents.get(textDocumentPosition.textDocument.uri);
+	if (!document) {
+		return null;
+	}
+
+	const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
+	if (!mode || !mode.doHover) {
+		return null;
+	}
+
+	return mode.doHover(document, textDocumentPosition.position);
 });
 
 // Make the text document manager listen on the connection

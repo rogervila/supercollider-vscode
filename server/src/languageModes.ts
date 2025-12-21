@@ -6,6 +6,7 @@
 import {
 	CompletionList,
 	Diagnostic,
+	Hover,
 	Position,
 	Range,
 } from 'vscode-languageserver';
@@ -18,6 +19,7 @@ export interface LanguageMode {
 	getId(): string;
 	doValidation?: (document: TextDocument) => Diagnostic[];
 	doComplete?: (document: TextDocument, position: Position) => CompletionList;
+	doHover?: (document: TextDocument, position: Position) => Hover | null;
 	onDocumentRemoved(document: TextDocument): void;
 	dispose(): void;
 }
