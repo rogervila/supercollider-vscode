@@ -19,7 +19,11 @@
 		"languages": [
 			{
 				"id": "supercollider",
-				"aliases": ["SuperCollider", "scd", "sc"],
+				"aliases": [
+					"SuperCollider",
+					"scd",
+					"sc"
+				],
 				"extensions": [
 					".scd",
 					".sc"
@@ -32,6 +36,66 @@
 				"language": "supercollider",
 				"scopeName": "source.supercollider",
 				"path": "./syntaxes/scd.tmLanguage.json"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "SuperCollider",
+			"properties": {
+				"supercollider.sclangPath": {
+					"type": "string",
+					"default": "sclang",
+					"description": "Path to the sclang executable."
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "supercollider.executeBlock",
+				"title": "SuperCollider: Execute Block"
+			},
+			{
+				"command": "supercollider.bootServer",
+				"title": "SuperCollider: Boot Server"
+			},
+			{
+				"command": "supercollider.rebootServer",
+				"title": "SuperCollider: Reboot Server"
+			},
+			{
+				"command": "supercollider.killServer",
+				"title": "SuperCollider: Kill Server"
+			},
+			{
+				"command": "supercollider.stopAllSounds",
+				"title": "SuperCollider: Stop All Sounds"
+			},
+			{
+				"command": "supercollider.startSclang",
+				"title": "SuperCollider: Start Language"
+			},
+			{
+				"command": "supercollider.stopSclang",
+				"title": "SuperCollider: Stop Language"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "supercollider.executeBlock",
+				"key": "ctrl+enter",
+				"mac": "cmd+enter",
+				"when": "editorTextFocus && resourceLangId == supercollider"
+			},
+			{
+				"command": "supercollider.executeBlock",
+				"key": "shift+enter",
+				"when": "editorTextFocus && resourceLangId == supercollider"
+			},
+			{
+				"command": "supercollider.stopAllSounds",
+				"key": "ctrl+.",
+				"mac": "cmd+.",
+				"when": "editorTextFocus"
 			}
 		]
 	},
