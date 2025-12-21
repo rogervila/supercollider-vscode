@@ -4,22 +4,41 @@ A Visual Studio Code extension providing language support for [SuperCollider](ht
 
 ## Features
 
-- **Syntax Highlighting** for SuperCollider code (`.scd` and `.sc` files)
-  - Comments (line `//` and block `/* */`)
-  - Strings, symbols, and characters
-  - Numbers (integers, floats, hex, radix notation)
-  - Classes, keywords, and operators
-  - Environment variables (`~varName`)
+- **Code Execution**: Execute SuperCollider code directly from VS Code.
+  - Execute current line or selected code (`Ctrl+Enter`)
+  - Evaluate code blocks (enclosed in parentheses)
+  - Boot/Reboot/Kill Server commands
+  - Stop all sounds (`Ctrl+.`)
 
-- **Code Completion** for:
-  - Keywords (`var`, `arg`, `if`, `while`, etc.)
-  - Built-in classes (`SinOsc`, `Array`, `Pbind`, etc.)
-  - Common methods (`play`, `ar`, `kr`, `do`, etc.)
+- **Syntax Highlighting** (`.scd` and `.sc` files):
+  - Comments, strings, characters, symbols
+  - Numbers, classes, keywords, operators, environment variables
+
+- **Code Completion**:
+  - Keywords, built-in classes, and common methods
 
 - **Editor Features**:
-  - Auto-closing brackets and quotes
-  - Block commenting
-  - Code folding
+  - Auto-closing brackets/quotes, block commenting, code folding
+
+## Requirements
+
+The [SuperCollider](https://supercollider.github.io/download) environment must be installed.
+
+- **macOS/Linux**: `sclang` should be in your PATH.
+- **Windows**: `sclang.exe` should be available.
+- **WSL**: The extension automatically handles the `sclang` alias issue by falling back to `sclang.exe`, or you can configure the path manually.
+
+## Extension Settings
+
+* `supercollider.sclangPath`: Path to the `sclang` executable (default: `sclang`).
+
+## Keybindings
+
+| Command | Keybinding |
+| --- | --- |
+| Execute Block/Selection | `Ctrl+Enter` (Cmd+Enter on macOS) |
+| Execute Block (Alternative) | `Shift+Enter` |
+| Stop All Sounds | `Ctrl+.` (Cmd+. on macOS) |
 
 ## Installation
 
@@ -83,3 +102,10 @@ npm run compile
 ## License
 
 MIT
+
+
+## Author
+
+[Roger Vilà](https://github.com/rogervila)
+
+Built with AI
