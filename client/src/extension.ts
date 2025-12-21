@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from 'path';
-import { ExtensionContext } from 'vscode';
+import { ExtensionContext, window } from 'vscode';
 
 import {
 	LanguageClient,
@@ -16,6 +16,9 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+	// Create output channel for logging
+	const outputChannel = window.createOutputChannel('SuperCollider Language Server');
+
 	// The server is implemented in node
 	const serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'server.js')
@@ -33,7 +36,8 @@ export function activate(context: ExtensionContext) {
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
 		// Register the server for SuperCollider documents
-		documentSelector: [{ scheme: 'file', language: 'supercollider' }]
+		documentSelector: [{ scheme: 'file', language: 'supercollider' }],
+		outputChannel: outputChannel
 	};
 
 	// Create the language client and start the client.

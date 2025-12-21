@@ -27,6 +27,7 @@ const documents = new TextDocuments(TextDocument);
 let languageModes: LanguageModes;
 
 connection.onInitialize((_params: InitializeParams) => {
+	connection.console.log('SuperCollider Language Server initializing...');
 	languageModes = getLanguageModes();
 
 	documents.onDidClose(e => {
@@ -36,6 +37,7 @@ connection.onInitialize((_params: InitializeParams) => {
 		languageModes.dispose();
 	});
 
+	connection.console.log('SuperCollider Language Server initialized with hover support');
 	return {
 		capabilities: {
 			textDocumentSync: TextDocumentSyncKind.Full,
@@ -103,15 +105,21 @@ connection.onCompletion(async (textDocumentPosition, _token) => {
 connection.onHover(async (textDocumentPosition, _token) => {
 	const document = documents.get(textDocumentPosition.textDocument.uri);
 	if (!document) {
+		connection.console.log('Hover: No document found');
 		return null;
 	}
 
 	const mode = languageModes.getModeAtPosition(document, textDocumentPosition.position);
+	connection.console.log(`Hover: mode = ${mode?.getId()}, hasDoHover = ${!!mode?.doHover}`);
+
 	if (!mode || !mode.doHover) {
+		connection.console.log('Hover: No mode or doHover not defined');
 		return null;
 	}
 
-	return mode.doHover(document, textDocumentPosition.position);
+	const result = mode.doHover(document, textDocumentPosition.position);
+	connection.console.log(`Hover result: ${JSON.stringify(result)?.substring(0, 100)}`);
+	return result;
 });
 
 // Make the text document manager listen on the connection
