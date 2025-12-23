@@ -220,15 +220,26 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
                      // Potential Candidate found.
                      // Verify it has a valid End.
                      const closeIndex = findMatchingClosing(i);
-                     if (closeIndex !== -1 && closeIndex >= offset) {
+                     if (closeIndex !== -1) {
                          // We found the closing paren.
-                         // Check if this closing paren constitutes a valid Region End
-                         if (isValidRegionEnd(closeIndex)) {
+
+                         // Check 1: Is it a valid Region End?
+                         if (!isValidRegionEnd(closeIndex)) {
+                             // Not a valid region end (e.g. (..).postln). Continue searching.
+                             continue;
+                         }
+
+                         // Check 2: Does it contain the cursor?
+                         // It contains the cursor if closeIndex >= offset
+                         // OR if we allow the cursor to be strictly on the SAME LINE as the closing paren.
+                         // (User scenario: cursor is at the end of the line containing ')')
+                         const closePos = document.positionAt(closeIndex);
+                         const isCursorInsideOrOnEndLine = (closeIndex >= offset) || (closePos.line === position.line);
+
+                         if (isCursorInsideOrOnEndLine) {
                              // Success!
                              return text.substring(i, closeIndex + 1);
                          }
-                         // If not valid end (e.g. (..).postln), we ignore this candidate
-                         // and continue searching backwards for an outer block.
                      }
                 }
             }
