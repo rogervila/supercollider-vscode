@@ -121,3 +121,5 @@ s.boot;
 )
 
 (2 * 2).postln;
+
+s.quit;
