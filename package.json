@@ -9,6 +9,7 @@
 		"url": "https://github.com/rogervila/supercollider-vscode"
 	},
 	"publisher": "rogervila",
+	"icon": "icon.png",
 	"categories": ["Programming Languages", "Linters"],
 	"keywords": ["supercollider", "scd", "sc", "audio", "music", "synthesis"],
 	"engines": {
