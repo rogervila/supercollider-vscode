@@ -7,30 +7,37 @@ arg rate = 1, amp = 0.5;
 classvar globalBus;
 const numChannels = 2;
 
+(
 // Environment variables
 ~globalPattern = Pbind(
     \instrument, \default,
     \degree, Pseq([0, 2, 4, 5, 7], inf),
     \dur, 0.25
 );
+)
 
 // Classes and methods (audio)
+(
 {
     var sig = SinOsc.ar(freq, 0, amp);
     var filtered = LPF.ar(sig, 1000);
     var env = EnvGen.kr(Env.perc(0.01, 0.5), doneAction: 2);
     Out.ar(0, Pan2.ar(filtered * env, 0));
 }.play;
+)
 
 // SynthDef
+(
 SynthDef(\simpleSine, {
     arg out = 0, freq = 440, amp = 0.5, gate = 1;
     var sig = SinOsc.ar(freq, 0, amp);
     var env = EnvGen.kr(Env.asr(0.01, 1, 0.1), gate, doneAction: 2);
     Out.ar(out, sig * env ! 2);
 }).add;
+)
 
 // Patterns
+(
 Pdef(\melody,
     Pbind(
         \instrument, \simpleSine,
@@ -39,13 +46,23 @@ Pdef(\melody,
         \amp, Pexprand(0.1, 0.3, inf)
     )
 );
+)
+
+
+(
+var freq = 100;
+freq.postln;
+)
 
 // Conditionals
+(
+var freq = 100;
 if(freq > 1000, {
     "High frequency".postln;
 }, {
     "Low frequency".postln;
 });
+)
 
 // Collections
 (
