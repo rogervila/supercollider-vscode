@@ -153,14 +153,8 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 	const text = document.getText();
 	const offset = document.offsetAt(position);
 
-	// Look for enclosing parentheses
-	let depth = 0;
-	let startOffset = -1;
-	let endOffset = -1;
-
     // Helper to check if the character is at the start of the line (ignoring whitespace)
     const isStartOfLine = (index: number): boolean => {
-        // Scan backwards from index - 1
         for (let j = index - 1; j >= 0; j--) {
             const char = text[j];
 			if (char === '\n' || char === '\r') {
@@ -169,14 +163,49 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
             if (char === ' ' || char === '\t') {
 				continue;
 			}
-            // Found non-whitespace character before index
             return false;
         }
-        // Reached start of file
         return true;
     };
 
-	// Search backwards for opening parenthesis
+    // Helper to find matching closing parenthesis for a given start
+    const findMatchingClosing = (startIndex: number): number => {
+        let depth = 0;
+        for (let i = startIndex; i < text.length; i++) {
+            const char = text[i];
+            if (char === '(') {
+                depth++;
+            } else if (char === ')') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    };
+
+    // Helper to check if the closing parenthesis is a valid Region End
+    // Must be followed by whitespace, newline, ';', or EOF.
+    // If it is followed by '.', it is NOT a region end.
+    const isValidRegionEnd = (endIndex: number): boolean => {
+        for (let i = endIndex + 1; i < text.length; i++) {
+            const char = text[i];
+            if (char === ' ' || char === '\t') {
+                continue;
+            }
+            if (char === '\n' || char === '\r' || char === ';') {
+                return true;
+            }
+            // Found something else (like '.') on the same line
+            return false;
+        }
+        // EOF
+        return true;
+    };
+
+	// Scan backwards for potential block starts
+    let depth = 0;
 	for (let i = offset; i >= 0; i--) {
 		const char = text[i];
 		if (char === ')') {
@@ -184,40 +213,26 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 		} else if (char === '(') {
 			depth--;
 
-			// Strict SC Logic: A block (region) MUST start at the beginning of a line (ignoring whitespace)
-            const isValidRegionStart = isStartOfLine(i);
-
-			if (isValidRegionStart) {
-                // If we found a valid start-of-line (, and we are 'inside' it (depth < 0)
-                // then this is our block.
-                if (depth < 0) {
-                    startOffset = i;
-                    break;
+            // A 'start' candidate must be at start of line
+			if (isStartOfLine(i)) {
+                // And it must enclose us (depth < 0) OR be the block we are closing (depth == 0 if we were at the end)
+                if (depth <= 0) {
+                     // Potential Candidate found.
+                     // Verify it has a valid End.
+                     const closeIndex = findMatchingClosing(i);
+                     if (closeIndex !== -1 && closeIndex >= offset) {
+                         // We found the closing paren.
+                         // Check if this closing paren constitutes a valid Region End
+                         if (isValidRegionEnd(closeIndex)) {
+                             // Success!
+                             return text.substring(i, closeIndex + 1);
+                         }
+                         // If not valid end (e.g. (..).postln), we ignore this candidate
+                         // and continue searching backwards for an outer block.
+                     }
                 }
             }
 		}
-	}
-
-	// Search forwards for closing parenthesis
-	if (startOffset >= 0) {
-		depth = 0;
-		for (let i = startOffset; i < text.length; i++) {
-			const char = text[i];
-			if (char === '(') {
-				depth++;
-			} else if (char === ')') {
-				depth--;
-                // If we hit the closing parenthesis that matches our start
-				if (depth === -1) {
-					endOffset = i + 1;
-					break;
-				}
-			}
-		}
-	}
-
-	if (startOffset >= 0 && endOffset > startOffset) {
-		return text.substring(startOffset, endOffset);
 	}
 
 	// No block found, return current line
