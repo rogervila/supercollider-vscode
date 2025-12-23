@@ -155,28 +155,26 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 
 	// Look for enclosing parentheses
 	let depth = 0;
-    // Track the lowest depth reached to find strict enclosers
-    let minDepth = 0;
 	let startOffset = -1;
 	let endOffset = -1;
 	let candidateStartOffset = -1;
 
-    // Helper to check if a position is an argument list (preceded by identifier)
-    const isArgList = (index: number): boolean => {
+    // Helper to check if the character is at the start of the line (ignoring whitespace)
+    const isStartOfLine = (index: number): boolean => {
         // Scan backwards from index - 1
         for (let j = index - 1; j >= 0; j--) {
             const char = text[j];
-			if (char === ' ' || char === '\t' || char === '\n' || char === '\r') {
+			if (char === '\n' || char === '\r') {
+				return true;
+			}
+            if (char === ' ' || char === '\t') {
 				continue;
 			}
-            // If identifier char, it is an arg list
-            if (/[a-zA-Z0-9_]/.test(char)) {
-                return true;
-            }
-            // If we hit a non-ident char (like ; or = or ( ), it's not an arg list
+            // Found non-whitespace character before index
             return false;
         }
-        return false;
+        // Reached start of file
+        return true;
     };
 
 	// Search backwards for opening parenthesis
@@ -187,20 +185,19 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 		} else if (char === '(') {
             depth--;
 
-            const isArgs = isArgList(i);
+            // Standard SC Logic: A block (region) MUST start at the beginning of a line
+            const isValidRegionStart = isStartOfLine(i);
 
-            // Strict Encloser: depth dropped below lowest seen
-			if (depth < minDepth) {
-                minDepth = depth;
-				if (!isArgs) {
-                    startOffset = i;
-                    break;
-                }
+            // Strict Encloser: depth dropped below 0 (meaning we were inside this block)
+            // AND it is a valid region start
+			if (depth < 0 && isValidRegionStart) {
+                startOffset = i;
+                break;
 			}
 
 			// Adjacent Candidate: returned to zero depth (matched a closing paren seen earlier)
 			if (depth === 0 && candidateStartOffset === -1) {
-				if (!isArgs) {
+				if (isValidRegionStart) {
                     candidateStartOffset = i;
                 }
 			}
@@ -221,7 +218,8 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 				depth++;
 			} else if (char === ')') {
 				depth--;
-				if (depth === 0) {
+                // If we hit the closing parenthesis that matches our start
+				if (depth === -1) {
 					endOffset = i + 1;
 					break;
 				}
