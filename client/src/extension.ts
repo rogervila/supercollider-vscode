@@ -158,6 +158,24 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 	let startOffset = -1;
 	let endOffset = -1;
 
+    // Helper to check if the character is at the start of the line (ignoring whitespace)
+    const isStartOfLine = (index: number): boolean => {
+        // Scan backwards from index - 1
+        for (let j = index - 1; j >= 0; j--) {
+            const char = text[j];
+			if (char === '\n' || char === '\r') {
+				return true;
+			}
+            if (char === ' ' || char === '\t') {
+				continue;
+			}
+            // Found non-whitespace character before index
+            return false;
+        }
+        // Reached start of file
+        return true;
+    };
+
 	// Search backwards for opening parenthesis
 	for (let i = offset; i >= 0; i--) {
 		const char = text[i];
@@ -166,15 +184,12 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 		} else if (char === '(') {
 			depth--;
 
-			// Strict SC Logic: A block (region) MUST start at the VERY BEGINNING of a line
-			// i.e. it must be at index 0, or preceded by a newline.
-            const isAtLineStart = (i === 0 || text[i - 1] === '\n' || text[i - 1] === '\r');
+			// Strict SC Logic: A block (region) MUST start at the beginning of a line (ignoring whitespace)
+            const isValidRegionStart = isStartOfLine(i);
 
-			if (isAtLineStart) {
-                // If we found a start-of-line (, and we are 'inside' it (depth < 0)
+			if (isValidRegionStart) {
+                // If we found a valid start-of-line (, and we are 'inside' it (depth < 0)
                 // then this is our block.
-                // Note: We might be deep inside nested structures, so depth could be -5.
-                // But the first start-of-line ( spanning us is the one we want.
                 if (depth < 0) {
                     startOffset = i;
                     break;

@@ -113,3 +113,11 @@ Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
 s.boot;
 
 { SinOsc.ar(440, 0, 0.1) }.play;
+
+(
+    // This is a block
+    var item = 2;
+    (item * 2).postln; // This is NOT a block (inner expression)
+)
+
+(2 * 2).postln;
