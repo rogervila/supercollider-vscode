@@ -155,8 +155,29 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 
 	// Look for enclosing parentheses
 	let depth = 0;
+    // Track the lowest depth reached to find strict enclosers
+    let minDepth = 0;
 	let startOffset = -1;
 	let endOffset = -1;
+	let candidateStartOffset = -1;
+
+    // Helper to check if a position is an argument list (preceded by identifier)
+    const isArgList = (index: number): boolean => {
+        // Scan backwards from index - 1
+        for (let j = index - 1; j >= 0; j--) {
+            const char = text[j];
+			if (char === ' ' || char === '\t' || char === '\n' || char === '\r') {
+				continue;
+			}
+            // If identifier char, it is an arg list
+            if (/[a-zA-Z0-9_]/.test(char)) {
+                return true;
+            }
+            // If we hit a non-ident char (like ; or = or ( ), it's not an arg list
+            return false;
+        }
+        return false;
+    };
 
 	// Search backwards for opening parenthesis
 	for (let i = offset; i >= 0; i--) {
@@ -164,12 +185,31 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 		if (char === ')') {
 			depth++;
 		} else if (char === '(') {
-			if (depth === 0) {
-				startOffset = i;
-				break;
+            depth--;
+
+            const isArgs = isArgList(i);
+
+            // Strict Encloser: depth dropped below lowest seen
+			if (depth < minDepth) {
+                minDepth = depth;
+				if (!isArgs) {
+                    startOffset = i;
+                    break;
+                }
 			}
-			depth--;
+
+			// Adjacent Candidate: returned to zero depth (matched a closing paren seen earlier)
+			if (depth === 0 && candidateStartOffset === -1) {
+				if (!isArgs) {
+                    candidateStartOffset = i;
+                }
+			}
 		}
+	}
+
+	// Fallback to candidate if no strict parent found
+	if (startOffset === -1 && candidateStartOffset !== -1) {
+		startOffset = candidateStartOffset;
 	}
 
 	// Search forwards for closing parenthesis
@@ -208,13 +248,17 @@ function executeBlockCommand(editor: TextEditor): void {
 	if (!selection.isEmpty) {
 		// Execute selected text
 		code = document.getText(selection);
+		sclangOutput.appendLine(`[DEBUG] Selected text: "${code}"`);
 	} else {
 		// Find enclosing block or current line
+		sclangOutput.appendLine(`[DEBUG] Cursor at line ${selection.active.line}, char ${selection.active.character}`);
 		const blockCode = findCodeBlock(document, selection.active);
 		if (blockCode) {
 			code = blockCode;
+			sclangOutput.appendLine(`[DEBUG] Block found: "${code}"`);
 		} else {
 			code = document.lineAt(selection.active.line).text;
+			sclangOutput.appendLine(`[DEBUG] No block, using line: "${code}"`);
 		}
 	}
 

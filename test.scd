@@ -48,9 +48,11 @@ if(freq > 1000, {
 });
 
 // Collections
+(
 [1, 2, 3, 4, 5].do { |item, index|
     (item * 2).postln;
 };
+)
 
 // Numbers: integers, floats, hex, radix
 42;
@@ -90,3 +92,7 @@ thisFunctionDef;
 // Method chaining
 Server.default.boot;
 Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+
+s.boot;
+
+{ SinOsc.ar(440, 0, 0.1) }.play;
