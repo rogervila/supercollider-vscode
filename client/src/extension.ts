@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from 'path';
+import * as fs from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import {
 	ExtensionContext,
@@ -29,6 +30,58 @@ let sclangProcess: ChildProcess | null = null;
 let sclangOutput: OutputChannel;
 let postWindowOutput: OutputChannel;
 
+// Get common macOS SuperCollider installation paths
+function getCommonMacOSPaths(): string[] {
+	return [
+		'/Applications/SuperCollider.app/Contents/Resources/sclang',
+		'/Applications/SuperCollider.app/Contents/MacOS/sclang',
+		'/usr/local/bin/sclang',
+		'/opt/homebrew/bin/sclang',
+		'/usr/bin/sclang'
+	];
+}
+
+// Check if a file exists and is executable
+function isExecutable(filePath: string): boolean {
+	try {
+		const stats = fs.statSync(filePath);
+		return stats.isFile() && (stats.mode & fs.constants.S_IXUSR) !== 0;
+	} catch {
+		return false;
+	}
+}
+
+// Find sclang executable, trying common paths on macOS
+function findSclangPath(configuredPath: string): string | null {
+	// If it's an absolute path or contains a path separator, check it directly
+	if (configuredPath !== 'sclang' && (configuredPath.includes('/') || configuredPath.includes('\\'))) {
+		if (isExecutable(configuredPath)) {
+			return configuredPath;
+		}
+		return null;
+	}
+
+	// If it's just 'sclang', try to find it in common installation paths
+	if (configuredPath === 'sclang') {
+		// On macOS, try common installation paths first
+		if (process.platform === 'darwin') {
+			const commonPaths = getCommonMacOSPaths();
+			for (const commonPath of commonPaths) {
+				if (isExecutable(commonPath)) {
+					sclangOutput.appendLine(`[SuperCollider] Found sclang at: ${commonPath}`);
+					return commonPath;
+				}
+			}
+		}
+		// On other platforms, return 'sclang' and hope it's in PATH
+		// The error handler will provide better error messages if it fails
+		return 'sclang';
+	}
+
+	// Return the configured path as-is (might work if it's in PATH)
+	return configuredPath;
+}
+
 // Get sclang path from configuration
 function getSclangPath(): string {
 	const config = workspace.getConfiguration('supercollider');
@@ -36,39 +89,66 @@ function getSclangPath(): string {
 }
 
 // Start sclang process
-function startSclang(fallbackToExe: boolean = true): boolean {
+async function startSclang(fallbackToExe: boolean = true): Promise<boolean> {
 	if (sclangProcess && !sclangProcess.killed) {
 		sclangOutput.appendLine('[SuperCollider] sclang already running');
 		return true;
 	}
 
-	let sclangPath = getSclangPath();
-    // If we are retrying with .exe
-    if (fallbackToExe && sclangPath === 'sclang' && process.platform === 'linux' && !sclangProcess) {
-       // We will try the default path first, but if it fails, the error handler will trigger the fallback
-       // actually, it's easier to handle this inside the error handler of the first attempt?
-       // Let's stick to the configuration path first.
-    }
+	let configuredPath = getSclangPath();
+	let sclangPath = findSclangPath(configuredPath);
+
+	if (!sclangPath) {
+		const errorMsg = `Could not find sclang executable at the configured path: ${configuredPath}. Please check the 'supercollider.sclangPath' setting.`;
+		if (process.platform === 'darwin') {
+			window.showErrorMessage(`${errorMsg} Common macOS paths: /Applications/SuperCollider.app/Contents/Resources/sclang`);
+		} else {
+			window.showErrorMessage(errorMsg);
+		}
+		sclangOutput.appendLine(`[SuperCollider] ${errorMsg}`);
+		return false;
+	}
 
 	sclangOutput.appendLine(`[SuperCollider] Starting sclang: ${sclangPath}`);
 
 	try {
-        const spawnProcess = (path: string) => {
-            const proc = spawn(path, ['-i', 'vscode'], {
+        const spawnProcess = (pathToSpawn: string, isFallback: boolean = false) => {
+            const proc = spawn(pathToSpawn, ['-i', 'vscode'], {
                 stdio: ['pipe', 'pipe', 'pipe']
             });
 
-            proc.on('error', (err) => {
-                sclangOutput.appendLine(`[SuperCollider] Error spawning ${path}: ${err.message}`);
+            proc.on('error', async (err) => {
+                sclangOutput.appendLine(`[SuperCollider] Error spawning ${pathToSpawn}: ${err.message}`);
 
-                // Fallback logic: if failed on 'sclang' and on linux/WSL, try 'sclang.exe'
-                if (path === 'sclang' && fallbackToExe && (process.platform === 'linux' || process.platform === 'win32')) {
+                // Fallback logic for Linux/WSL: try 'sclang.exe'
+                if (pathToSpawn === 'sclang' && fallbackToExe && !isFallback && (process.platform === 'linux' || process.platform === 'win32')) {
                     sclangOutput.appendLine('[SuperCollider] Attempting fallback to sclang.exe...');
-                    sclangProcess = spawnProcess('sclang.exe');
+                    sclangProcess = spawnProcess('sclang.exe', true);
                     return;
                 }
 
-                window.showErrorMessage(`Failed to start sclang (${path}): ${err.message}. Check supercollider.sclangPath setting.`);
+                // Fallback logic for macOS: try common installation paths
+                if (process.platform === 'darwin' && configuredPath === 'sclang' && !isFallback) {
+                    const commonPaths = getCommonMacOSPaths();
+                    for (const commonPath of commonPaths) {
+                        if (isExecutable(commonPath) && commonPath !== pathToSpawn) {
+                            sclangOutput.appendLine(`[SuperCollider] Attempting fallback to: ${commonPath}`);
+                            sclangProcess = spawnProcess(commonPath, true);
+                            return;
+                        }
+                    }
+                }
+
+                // All fallbacks failed
+                let errorMessage = `Failed to start sclang (${pathToSpawn}): ${err.message}.`;
+                if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+                    errorMessage += ' The executable was not found.';
+                    if (process.platform === 'darwin') {
+                        errorMessage += ' On macOS, try setting supercollider.sclangPath to: /Applications/SuperCollider.app/Contents/Resources/sclang';
+                    }
+                }
+                errorMessage += ' Check the supercollider.sclangPath setting.';
+                window.showErrorMessage(errorMessage);
                 sclangProcess = null;
             });
 
@@ -116,9 +196,9 @@ function stopSclang(): void {
 }
 
 // Send code to sclang for execution
-function executeCode(code: string): void {
+async function executeCode(code: string): Promise<void> {
 	if (!sclangProcess || sclangProcess.killed) {
-		if (!startSclang()) {
+		if (!(await startSclang())) {
 			return;
 		}
 		// Wait a bit for sclang to initialize
@@ -252,7 +332,7 @@ function findCodeBlock(document: TextDocument, position: Position): string | nul
 }
 
 // Execute block command
-function executeBlockCommand(editor: TextEditor): void {
+async function executeBlockCommand(editor: TextEditor): Promise<void> {
 	const document = editor.document;
 	const selection = editor.selection;
 
@@ -275,27 +355,27 @@ function executeBlockCommand(editor: TextEditor): void {
 		}
 	}
 
-	executeCode(code);
+	await executeCode(code);
 }
 
 // Boot SuperCollider server
-function bootServer(): void {
-	executeCode('s.boot;');
+async function bootServer(): Promise<void> {
+	await executeCode('s.boot;');
 }
 
 // Reboot SuperCollider server
-function rebootServer(): void {
-	executeCode('s.reboot;');
+async function rebootServer(): Promise<void> {
+	await executeCode('s.reboot;');
 }
 
 // Kill SuperCollider server
-function killServer(): void {
-	executeCode('s.quit;');
+async function killServer(): Promise<void> {
+	await executeCode('s.quit;');
 }
 
 // Stop all sounds
-function stopAllSounds(): void {
-	executeCode('CmdPeriod.run;');
+async function stopAllSounds(): Promise<void> {
+	await executeCode('CmdPeriod.run;');
 }
 
 export function activate(context: ExtensionContext) {
@@ -337,8 +417,8 @@ export function activate(context: ExtensionContext) {
 		commands.registerCommand('supercollider.rebootServer', rebootServer),
 		commands.registerCommand('supercollider.killServer', killServer),
 		commands.registerCommand('supercollider.stopAllSounds', stopAllSounds),
-		commands.registerCommand('supercollider.startSclang', () => {
-			startSclang();
+		commands.registerCommand('supercollider.startSclang', async () => {
+			await startSclang();
 			postWindowOutput.show(true);
 		}),
 		commands.registerCommand('supercollider.stopSclang', stopSclang)

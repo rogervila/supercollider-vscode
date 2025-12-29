@@ -1,5 +1,6 @@
 {
 	"name": "supercollider-vscode",
+	"displayName": "SuperCollider (Development)",
 	"description": "SuperCollider language server for Visual Studio Code",
 	"author": "Roger Vilà <rogervila@me.com>",
 	"license": "MIT",
