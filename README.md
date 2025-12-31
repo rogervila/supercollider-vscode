@@ -52,6 +52,7 @@ The [SuperCollider](https://supercollider.github.io/download) environment must b
 
 ## Usage
 
+Open VS Code (On macOS make sure that microphone permissions are set for VS Code)
 Create or open a `.scd` or `.sc` file and start writing SuperCollider code:
 
 ```supercollider
