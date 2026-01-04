@@ -13,7 +13,7 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind
 } from 'vscode-languageserver';
-import { getLanguageModes, LanguageModes } from './languageModes';
+import { getLanguageModes, LanguageModes } from './languagemodes';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.

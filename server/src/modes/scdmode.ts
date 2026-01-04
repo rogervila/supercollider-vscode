@@ -12,7 +12,7 @@ import {
 	Position,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { LanguageMode } from '../languageModes';
+import { LanguageMode } from '../languagemodes';
 
 // SuperCollider keywords
 const SC_KEYWORDS = [

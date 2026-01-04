@@ -11,7 +11,7 @@ import {
 	Range,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { getSuperColliderMode } from './modes/scdMode';
+import { getSuperColliderMode } from './modes/scdmode';
 
 export { Position, Range, TextDocument };
 
