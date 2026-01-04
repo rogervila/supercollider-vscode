@@ -19,6 +19,8 @@ const numChannels = 2;
 // Classes and methods (audio)
 (
 {
+    var amp = 0.5;
+    var freq = 440;
     var sig = SinOsc.ar(freq, 0, amp);
     var filtered = LPF.ar(sig, 1000);
     var env = EnvGen.kr(Env.perc(0.01, 0.5), doneAction: 2);
