@@ -2,6 +2,9 @@
 
 All notable changes to the "supercollider-vscode" extension will be documented in this file.
 
+## [1.0.2] - 2026-04-28
+- fix: Fix code evaluation to print output results natively via sclang (https://github.com/rogervila/supercollider-vscode/pull/2)
+
 ## [1.0.1] - 2026-01-04
 - feat: enhance sclang path resolution for macOS and error handling (https://github.com/rogervila/supercollider-vscode/pull/1)
 - new logo
