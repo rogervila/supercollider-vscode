@@ -222,10 +222,8 @@ function sendCode(code: string): void {
 		return;
 	}
 
-	postWindowOutput.appendLine(`\n-> ${cleanCode.split('\n')[0]}${cleanCode.includes('\n') ? '...' : ''}`);
-
-	// Send code followed by 0x1b (escape) to execute
-	sclangProcess.stdin.write(cleanCode + '\x1b');
+	// Send code followed by 0x0c (form feed) to execute and print result
+	sclangProcess.stdin.write(cleanCode + '\x0c');
 }
 
 // Find the code block containing the cursor
