@@ -1,7 +1,5 @@
 # SuperCollider Language Server for Visual Studio Code
 
-> **⚠ Note**: This extension is still in development and is not yet stable.
-
 A Visual Studio Code extension providing language support for [SuperCollider](https://supercollider.github.io/), an audio synthesis and algorithmic composition platform.
 
 ## Features
