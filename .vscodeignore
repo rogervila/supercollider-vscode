@@ -15,5 +15,8 @@ client/node_modules/**
 supercollider.webp
 supercollider/
 test.scd
+client/out/test/**
+client/testFixture/**
+.github/**
 src/**
 **/*.log

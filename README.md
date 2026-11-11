@@ -74,8 +74,10 @@ Pbind(
 
 ```
 ├── client/          # Language client (VSCode extension)
-│   └── src/
-│       └── extension.ts
+│   ├── src/
+│   │   ├── extension.ts
+│   │   └── test/    # Extension tests
+│   └── testFixture/ # Files that the tests open
 ├── server/          # Language server
 │   └── src/
 │       ├── server.ts
@@ -93,6 +95,16 @@ Pbind(
 npm install
 npm run compile
 ```
+
+### Testing
+
+```bash
+npm test
+```
+
+The tests run in a VS Code instance that `@vscode/test-electron` downloads to `.vscode-test/`. SuperCollider is not needed: a fake `sclang` script records what the extension sends to it. The fake `sclang` is a POSIX shell script, so the tests that use it are skipped on Windows. On Linux without a display, run `xvfb-run -a npm test`.
+
+GitHub Actions runs the tests on every push and pull request (`.github/workflows/test.yml`).
 
 ### Debugging
 
@@ -247,6 +259,7 @@ Use this checklist every time you cut a new release:
 - [ ] Update `CHANGELOG.md` with the new version and a summary of changes
 - [ ] Run `npm run lint` — fix any errors
 - [ ] Run `npm run compile` — ensure a clean build
+- [ ] Run `npm test` — all tests pass
 - [ ] Run `npm run package` — verify the `.vsix` is created without errors
 - [ ] Install and smoke-test the `.vsix` locally: `code --install-extension *.vsix`
 - [ ] Publish to VS Code Marketplace: `npx vsce publish`
