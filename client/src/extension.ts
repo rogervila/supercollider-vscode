@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, execFileSync, ChildProcess } from 'child_process';
 import {
 	ExtensionContext,
 	window,
@@ -196,21 +196,41 @@ function stopSclang(): void {
 }
 
 // Send code to sclang for execution
-async function executeCode(code: string): Promise<void> {
+// filePath is the file the code comes from, or null if there is no saved file
+async function executeCode(code: string, filePath: string | null = null): Promise<void> {
 	if (!sclangProcess || sclangProcess.killed) {
 		if (!(await startSclang())) {
 			return;
 		}
 		// Wait a bit for sclang to initialize
 		setTimeout(() => {
-			sendCode(code);
+			sendCode(code, filePath);
 		}, 1000);
 	} else {
-		sendCode(code);
+		sendCode(code, filePath);
 	}
 }
 
-function sendCode(code: string): void {
+// Quote a string as a SuperCollider string literal
+function toScString(value: string): string {
+	return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+// Convert a file path to a path that sclang can open.
+// Under WSL, sclang.exe is a Windows program, so it needs a Windows path.
+function toSclangPath(filePath: string): string {
+	if (process.platform !== 'linux' || !sclangProcess?.spawnfile.toLowerCase().endsWith('.exe')) {
+		return filePath;
+	}
+	try {
+		return execFileSync('wslpath', ['-w', filePath], { encoding: 'utf8' }).trim();
+	} catch (err) {
+		sclangOutput.appendLine(`[SuperCollider] Could not convert ${filePath} to a Windows path: ${err}`);
+		return filePath;
+	}
+}
+
+function sendCode(code: string, filePath: string | null): void {
 	if (!sclangProcess || !sclangProcess.stdin) {
 		window.showErrorMessage('sclang is not running');
 		return;
@@ -221,6 +241,13 @@ function sendCode(code: string): void {
 	if (!cleanCode) {
 		return;
 	}
+
+	// Outside SCIDE, sclang does not set thisProcess.nowExecutingPath, so
+	// loadRelative and resolveRelative fail. Set it to the file of the code
+	// (nil for unsaved files) before the code runs. sclang resets it to nil
+	// after the code runs. 0x1b (escape) executes without printing the result.
+	const scPath = filePath ? toScString(toSclangPath(filePath)) : 'nil';
+	sclangProcess.stdin.write(`thisProcess.nowExecutingPath = ${scPath};\x1b`);
 
 	// Send code followed by 0x0c (form feed) to execute and print result
 	sclangProcess.stdin.write(cleanCode + '\x0c');
@@ -353,7 +380,9 @@ async function executeBlockCommand(editor: TextEditor): Promise<void> {
 		}
 	}
 
-	await executeCode(code);
+	// Only saved files have a path on disk
+	const filePath = document.uri.scheme === 'file' ? document.uri.fsPath : null;
+	await executeCode(code, filePath);
 }
 
 // Boot SuperCollider server

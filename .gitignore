@@ -4,3 +4,10 @@ client/server
 .vscode-test
 supercollider/
 *.vsix
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md
+skills-lock.json
+.caveman.json
+tmp/
